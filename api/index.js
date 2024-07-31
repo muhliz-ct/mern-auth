@@ -11,7 +11,7 @@ mongoose.connect(process.env.MONGO_URL)
     console.log("connected to MongoDB!");
 })
         .catch((err)=>{
-    console.log(err);
+    console.log("mongodb connection error" + err);
 })
 
 const app = express();
