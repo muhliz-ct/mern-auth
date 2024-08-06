@@ -4,7 +4,9 @@ import {getStorage , getDownloadURL, ref, uploadBytesResumable} from "firebase/s
 import {app} from '../Firebase';
 import { useDispatch } from "react-redux";
 import { updateUserStart , updateUserSuccess , updateUserFailure, deleteUserStart, deleteUserFailure, deleteUserSuccess, signOut } from "../redux/user/userSlice";
-export default function Profile() {
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+export default function UserEdit() {
   const fileRef = useRef();
   const dispatch = useDispatch();
   const [image ,setImage] = useState(undefined);
@@ -13,11 +15,28 @@ export default function Profile() {
   const [formData, setFormData] = useState({}); 
   const [updateSuccess, setUpdateSuccess] = useState(false);
   // console.log(formData);
-  const {currentUser , loading , error} = useSelector((state) => state.user);
+  const {  loading , error} = useSelector((state) => state.user);
+  const [currentUser,setcurrentUser]=useState({})
+  const { id } = useParams();
+  const naviget =useNavigate()
+
+  const dataFect=async()=>{
+    console.log(id);
+    try {
+       const {data}= await axios.get('/api/user/getUser/'+id);
+       setcurrentUser(data);
+       setFormData({...data});
+       
+    } catch (error) {
+        console.log(error.message)
+    }
+  }
   useEffect(() => {
+    dataFect()
     if(image) {
       handleFileUpload(image);
     }
+
   }, [image]);
 
   const handleFileUpload = async (image) => {
@@ -42,64 +61,28 @@ export default function Profile() {
   );
 };
 
+
+
 const handleChange = (e) => {
   setFormData({...formData, [e.target.id]: e.target.value});
 }
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+ 
   try {
-    dispatch(updateUserStart());
-    const res = await fetch(`/api/user/update/${currentUser._id}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData),
-    });
-    console.log(res);
-    const data = await res.json();
-    if(data.success === false) {
-      console.log('working if');
-      dispatch(updateUserFailure(data));
-      return;
-    }
-    // console.log(data);
-    dispatch(updateUserSuccess(data));
+  
+   await axios.post('/api/user/update/'+id,{...formData,admin:true});
+   alert('done')
     setUpdateSuccess(true);
-    // console.log(currentUser);
+    naviget('/admin')
   } catch (error) {
-    dispatch(updateUserFailure(error));
+    // dispatch(updateUserFailure(error));
   }
 }
 
 
-const handleDeleteAccount = async () =>{
-  try {
-    dispatch(deleteUserStart)
-    const res = await fetch(`/api/user/delete/${currentUser._id}`, {
-      method: 'DELETE'
-    });
-    const data = await res.json();
-    if(data.success === false){
-      dispatch(deleteUserFailure(data))
-      return
-    }
-    dispatch(deleteUserSuccess(data))
-  } catch (error) {
-    dispatch(deleteUserFailure(error))
-  }
-}
 
-
-const handleSignOut =async () => {
-  try {
-    await fetch('/api/auth/signout');
-    dispatch(signOut())
-  } catch (error) {
-    console.log(error);
-  }
-}
 
   // console.log(formData);
   return (
@@ -120,16 +103,12 @@ const handleSignOut =async () => {
           placeholder="Username" className="bg-slate-100 roundeld-lg p-3" onChange={handleChange}/>
           <input defaultValue={currentUser.email} type="email" id="email"
           placeholder="Email" className="bg-slate-100 roundeld-lg p-3" onChange={handleChange}/>
-          <input type="password" id="password"
-          placeholder="" className="bg-slate-100 roundeld-lg p-3" onChange={handleChange}/>
-
-          <button type="submit" className="bg-slate-700 text-white p-3 rounded-lg uppercase active:scale-95 transition-all ease-in duration-75 hover:opacity-95 disabled:opacity-80">{loading ? 'Loading...' : 'Update'}</button>
+         
+          <button type="submit" className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">{loading ? 'Loading...' : 'Update'}</button>
           
       </form>
       <div className="flex justify-between mt-5">
-        <span onClick={handleDeleteAccount} className="text-red-600 cursor-pointer">Delete account</span>
-        <span onClick={handleSignOut} className="text-red-600 cursor-pointer">Sign Out </span>
-      </div>
+        </div>
       <p className="text-red-600 mt-5">{error && 'something went wrong!'}</p>
       <p className="text-green-600 mt-5">{updateSuccess && 'User is updated successfully'}</p>
     </div>

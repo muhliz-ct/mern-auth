@@ -23,6 +23,7 @@ export default function Header() {
                   <li>Sign in</li>
                 )}</li>
                 </Link>
+                {currentUser?.isAdmin&&<Link to="/admin">Admin</Link>}
             </ul>
         </div>
     </div>

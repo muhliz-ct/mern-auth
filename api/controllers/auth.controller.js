@@ -12,6 +12,7 @@ export const signup =async (req,res,next)=>{
         await newUser.save();
         res.send("added to db successfully")
     } catch (error) {
+        console.log(error.message);
         next(errorHandler(300,"hahahaha"));
     }
     
@@ -56,4 +57,32 @@ export const google = async (req, res, next) => {
     } catch (error) {
         next(error)
     }
+}
+
+
+export const signout = (req, res) => {
+    res.clearCookie('access_token').status(200).json('Signout success');
+};
+
+
+export const userData = async ( req, res, next)=>{
+    try {
+        const data = await User.find();
+        console.log(data);
+        res.status(200).json(data); 
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+}
+
+export const deleteUser = async (req, res, next)=>{
+    try {
+        console.log(req.params.id);
+        await User.findOneAndDelete({_id:req.params.id});
+        res.send({success:true})
+    } catch (error) {
+        next(error)
+    }
+
 }
